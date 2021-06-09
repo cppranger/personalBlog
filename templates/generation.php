@@ -191,6 +191,7 @@ function generate_admin_panel ($mysqli) {
         <?
         if ($sql_result -> num_rows > 0) {
             $id = 1;
+            $type = 'articles';
             while($sql_result_article = $sql_result -> fetch_assoc()) {
                 $sql_category = "SELECT title FROM `articles_categories` WHERE id = '".$sql_result_article[categorie_id]."'";
                 $sql_category_result = $mysqli -> query($sql_category);
@@ -203,7 +204,7 @@ function generate_admin_panel ($mysqli) {
                     <td><? echo $category['title'] ?></td>
                     <td><?= substr($sql_result_article['pubdate'], 0, 11) ?></td>
                     <td><? echo $sql_result_article['views'] ?></td>
-                    <td>actions</td>
+                    <td><? generate_actions($mysqli, $type, $id) ?></td>
                     </tr>
                 <?php
                 $id++;
@@ -233,6 +234,7 @@ function generate_admin_panel ($mysqli) {
     <?
             if ($sql_result -> num_rows > 0) {
                 $id = 1;
+                $type = 'articles_categories';
                 while ($sql_result_category = $sql_result -> fetch_assoc()) {
                     $sql_count = "SELECT COUNT(title) FROM `articles` WHERE categorie_id = '".$sql_result_category['id']."'";
                     $sql_count_result = $mysqli -> query($sql_count);
@@ -242,7 +244,7 @@ function generate_admin_panel ($mysqli) {
             <th scope="row"><? echo $id ?></th>
             <td><a href="category.php?id_cat=<?= $sql_result_category['id'] ?>"><?= $sql_result_category['title'] ?></a></td>
             <td><? echo $count['COUNT(title)'] ?></td>
-            <td>actions</td>
+            <td><? generate_actions($mysqli, $type, $id) ?></td>
         </tr>
         <?
         $id++;
@@ -274,6 +276,7 @@ function generate_admin_panel ($mysqli) {
     <?
             if ($sql_result -> num_rows > 0) {
                 $id = 1;
+                $type = 'articles_comments';
                 while ($sql_result_comment = $sql_result -> fetch_assoc()) {
                     $sql_title = "SELECT `title` FROM `articles` WHERE id = '".$sql_result_comment['article_id']."'";
                     $sql_title_result = $mysqli -> query($sql_title);
@@ -285,7 +288,7 @@ function generate_admin_panel ($mysqli) {
             <td><? echo substr($sql_result_comment['text'], 0, 15) . '...' ?></td>
             <td><? echo $sql_result_comment['pubdate'] ?></td>
             <td><a href="post.php?id_article=<?= $sql_result_comment['article_id'] ?>"><?= $title[title] ?></a></td>
-            <td>actions</td>
+            <td><? generate_actions($mysqli, $type, $id) ?></td>
         </tr>
         <?
         $id++;
@@ -296,5 +299,47 @@ function generate_admin_panel ($mysqli) {
     </table>
 </div>
 <?
+}
+
+function generate_actions($mysqli, $type, $id) {
+    ?> <span>
+        <span><a href="./modify.php?type=<? echo $type ?>&id=<? echo $id ?>"><img src="./media/img/modify.png" style="max-width:30px; margin-left:3%; margin-right:3%;" alt="modify"></a></span> 
+        <span><a href="./delete.php?type=<? echo $type ?>&id=<? echo $id ?>"><img src="./media/img/delete.png" style="max-width:30px;" alt="delete"></a></span>
+    </span> <?
+}
+
+function generate_modify($mysqli, $type, $id) {
+    if ($type == 'articles') {
+        $sql = "SELECT * FROM articles WHERE id = '$id'";
+        $sql_result = $mysqli -> query($sql);
+        $articles = mysqli_fetch_assoc($sql_result);
+        print_r($articles);
+
+        ?>
+        <div class="container" style="margin-top: 3%;">
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Title</label>
+                <input type="text" class="form-control" id="titleArticle" value="<? echo $articles[title] ?>">
+            </div>
+            <div class="mb-3">
+                <label for="exampleFormControlTextarea1" class="form-label">Text</label>
+                <textarea class="form-control" id="titleArticle" rows="3" style="height:300px;"><? echo $articles[text] ?></textarea>
+            </div>
+            <div class="col-auto">
+            <?php
+                    $sql_category = "SELECT * FROM `articles_categories`";
+                    $sql_categories_result = $mysqli -> query($sql_category);
+                ?>
+                <label class="visually-hidden" for="autoSizingSelect">Preference</label>
+                <select class="form-select" id="catArticle">
+                    <? while ($sql_categories_result = $category -> fetch_assoc()) {?>
+                        print_r($sql_categories_result);
+                        <option <? if ($category['id'] == $id) echo 'selected'?> value="<? echo $category['title'] ?>"><? echo $category['title'] ?></option>
+                    <? } ?>
+                </select>
+            </div>
+        </div>
+        <?
+    }
 }
 ?>
